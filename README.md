@@ -13,6 +13,11 @@ The single source of truth for cogate's internal gRPC contracts.
 Services consume a tagged release. They do not copy `.proto` files or generated
 stubs into their own repositories.
 
+The repository is private. Local Go consumers set
+`GOPRIVATE=github.com/brojyf/cogate-cotab-proto`; CI and container builds use a
+read-only `CROSS_REPO_TOKEN` through the Git credential helper or a BuildKit
+secret. Tokens must never be written into images or committed configuration.
+
 ## Compatibility policy
 
 Packages are versioned as `<service>.v1`. Within a package, fields are added
