@@ -14,9 +14,10 @@ Services consume a tagged release. They do not copy `.proto` files or generated
 stubs into their own repositories.
 
 The repository is private. Local Go consumers set
-`GOPRIVATE=github.com/brojyf/cogate-cotab-proto`; CI and container builds use a
-read-only `CROSS_REPO_TOKEN` through the Git credential helper or a BuildKit
-secret. Tokens must never be written into images or committed configuration.
+`GOPRIVATE=github.com/brojyf/cogate-cotab-proto`; CI and container builds use
+the repository's read-only deploy key through the `PROTO_REPO_SSH_KEY` Actions
+secret and a BuildKit secret mount. The key must never be written into images
+or committed configuration.
 
 ## Compatibility policy
 
