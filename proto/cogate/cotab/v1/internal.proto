@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package cogate.cotab.v1;
+
+option go_package = "github.com/brojyf/cogate-cotab-proto/gen/go/cogate/cotab/v1;cotabv1";
+
+// CotabInternal is how other cogate services change data that cogate-cotab-api
+// owns. Nothing else writes the Cotab database: a service that needs a row
+// changed asks for it here, so the rules around that row live in one codebase
+// and a schema change is not a synchronized deploy across three repositories.
+//
+// Every RPC requires a service token in the `authorization: Bearer …` metadata
+// header, and every RPC is idempotent on an explicit caller-supplied key. That
+// pairing is the point of this service: the transports underneath it —
+// at-least-once queues, retried RPCs — will deliver the same request more than
+// once, and the caller cannot tell a lost response from a lost request. Making
+// the second call a no-op that returns the first call's answer is what lets a
+// caller retry without inventing a second effect.
+service CotabInternal {
+  // Records the outcome of avatar moderation: updates the subject's avatar
+  // state, writes the audit log, and enqueues the notification to the
+  // uploader. Idempotent on message_id.
+  rpc ApplyAvatarModerationResult(ApplyAvatarModerationResultRequest)
+      returns (ApplyAvatarModerationResultResponse);
+}
+
+enum AvatarSubjectType {
+  AVATAR_SUBJECT_TYPE_UNSPECIFIED = 0;
+  AVATAR_SUBJECT_TYPE_USER = 1;
+  AVATAR_SUBJECT_TYPE_GROUP = 2;
+}
+
+enum AvatarVerdict {
+  AVATAR_VERDICT_UNSPECIFIED = 0;
+  AVATAR_VERDICT_APPROVED = 1;
+  AVATAR_VERDICT_REJECTED = 2;
+  // The image was never judged, because moderation itself kept failing.
+  AVATAR_VERDICT_FAILED = 3;
+}
+
+message ApplyAvatarModerationResultRequest {
+  // Idempotency key: the id of the moderation queue message this verdict came
+  // from. One message produces one verdict no matter how many times it is
+  // delivered or how many times this call is retried.
+  string message_id = 1;
+
+  AvatarSubjectType subject_type = 2;
+  string subject_id = 3;
+
+  // Who uploaded the image. Kept on the audit entry so a report has a person
+  // on it; for a user avatar this equals subject_id.
+  string uploaded_by = 4;
+
+  AvatarVerdict verdict = 5;
+
+  // Where the approved image was published, required when the verdict is
+  // APPROVED and empty otherwise.
+  //
+  // The caller derives this key deterministically from message_id, so a retry
+  // uploads to the same object rather than orphaning the first one. Sending a
+  // freshly generated key on a retry would leave the previous upload in the
+  // bucket, referenced by nothing and paid for forever.
+  string public_key = 6;
+
+  // The pending-bucket object the verdict was reached on, recorded on the
+  // audit entry when nothing was published.
+  string pending_key = 7;
+
+  // Which moderator produced this ("openai", "imageproc", "system").
+  string provider = 8;
+
+  // Stable machine-readable code explaining a non-approval, forwarded to the
+  // client. Empty when approved.
+  string reason = 9;
+
+  // Raw provider category scores, stored verbatim for auditing.
+  map<string, double> scores = 10;
+}
+
+message ApplyAvatarModerationResultResponse {
+  // The public object this approval displaced, empty when there was none. The
+  // caller deletes it; returning it on a replay too means a retry that lost
+  // the first response can still finish the cleanup.
+  string replaced_key = 1;
+
+  // True when this message_id had already been applied and nothing changed.
+  bool already_applied = 2;
+
+  // The verdict actually on record. On a replay this is what the first call
+  // stored, which is what the caller should act on.
+  AvatarVerdict applied_verdict = 3;
+
+  // False when the subject no longer exists — a deleted user, a soft-deleted
+  // group. The call still succeeds, because there is nothing to retry: the
+  // caller should clean up the objects it uploaded and move on.
+  bool subject_exists = 4;
+}

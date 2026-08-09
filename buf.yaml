@@ -1,0 +1,15 @@
+# Contract checks live here so wire compatibility is enforced once, at the
+# source of truth, before any service opts into a new release.
+version: v2
+modules:
+  - path: proto
+lint:
+  use: [STANDARD]
+  except:
+    # These service names are already deployed on the wire. Renaming them for
+    # a naming convention would be a breaking change.
+    - SERVICE_SUFFIX
+    # DownloadObject streams chunks, not one response object.
+    - RPC_RESPONSE_STANDARD_NAME
+breaking:
+  use: [FILE]

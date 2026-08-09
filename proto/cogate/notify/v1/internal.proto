@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package cogate.notify.v1;
+
+option go_package = "github.com/brojyf/cogate-cotab-proto/gen/go/cogate/notify/v1;notifyv1";
+
+// NotifyInternal is how other cogate services manage the delivery targets that
+// cogate-notify owns.
+//
+// Device tokens live here rather than in the application database because
+// this is the service that knows when one stops working: APNs reports a token
+// as gone during a send, and the row has to disappear at that moment. Splitting
+// "who owns the row" from "who learns it is dead" means either two services
+// write one table, or dead tokens accumulate until something else notices.
+//
+// Every RPC requires a service token in the `authorization: Bearer …` header.
+service NotifyInternal {
+  // Claims a device for a user. Idempotent: registering the same token twice
+  // is one device, and registering a token another user left behind moves it.
+  rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
+
+  // Releases a device the caller's user owns. Idempotent: unregistering a
+  // device that is not there succeeds.
+  rpc UnregisterDevice(UnregisterDeviceRequest) returns (UnregisterDeviceResponse);
+}
+
+message RegisterDeviceRequest {
+  string user_id = 1;
+  // The APNs device token.
+  string token = 2;
+  // True for a build signed with a development certificate, which APNs serves
+  // from a different host. Sending a sandbox token to production silently
+  // fails, so this is not a hint — it is part of the address.
+  bool sandbox = 3;
+}
+
+message RegisterDeviceResponse {}
+
+message UnregisterDeviceRequest {
+  // Scoped to the user so one user cannot unregister another's device by
+  // guessing its token.
+  string user_id = 1;
+  string token = 2;
+}
+
+message UnregisterDeviceResponse {}
