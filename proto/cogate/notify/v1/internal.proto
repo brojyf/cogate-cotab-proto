@@ -28,10 +28,8 @@ message RegisterDeviceRequest {
   string user_id = 1;
   // The APNs device token.
   string token = 2;
-  // True for a build signed with a development certificate, which APNs serves
-  // from a different host. Sending a sandbox token to production silently
-  // fails, so this is not a hint — it is part of the address.
-  bool sandbox = 3;
+  // Retained only for v1 wire compatibility. Servers ignore this field.
+  bool sandbox = 3 [deprecated = true];
 }
 
 message RegisterDeviceResponse {}

@@ -26,9 +26,9 @@ type RegisterDeviceRequest struct {
 	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// The APNs device token.
 	Token string `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
-	// True for a build signed with a development certificate, which APNs serves
-	// from a different host. Sending a sandbox token to production silently
-	// fails, so this is not a hint — it is part of the address.
+	// Retained only for v1 wire compatibility. Servers ignore this field.
+	//
+	// Deprecated: Marked as deprecated in cogate/notify/v1/internal.proto.
 	Sandbox       bool `protobuf:"varint,3,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -78,6 +78,7 @@ func (x *RegisterDeviceRequest) GetToken() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in cogate/notify/v1/internal.proto.
 func (x *RegisterDeviceRequest) GetSandbox() bool {
 	if x != nil {
 		return x.Sandbox
@@ -215,11 +216,11 @@ var File_cogate_notify_v1_internal_proto protoreflect.FileDescriptor
 
 const file_cogate_notify_v1_internal_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcogate/notify/v1/internal.proto\x12\x10cogate.notify.v1\"`\n" +
+	"\x1fcogate/notify/v1/internal.proto\x12\x10cogate.notify.v1\"d\n" +
 	"\x15RegisterDeviceRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
-	"\x05token\x18\x02 \x01(\tR\x05token\x12\x18\n" +
-	"\asandbox\x18\x03 \x01(\bR\asandbox\"\x18\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\x12\x1c\n" +
+	"\asandbox\x18\x03 \x01(\bB\x02\x18\x01R\asandbox\"\x18\n" +
 	"\x16RegisterDeviceResponse\"H\n" +
 	"\x17UnregisterDeviceRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
