@@ -79,6 +79,11 @@ message UploadObjectRequest {
     string bucket = 1;
     string key = 2;
     string content_type = 3;
+    // Optional. Stored on the object and returned by R2 on every public read,
+    // so it is what a CDN and a client actually cache on. Objects whose key
+    // already identifies their content should send a long immutable value;
+    // empty leaves the bucket default in place.
+    string cache_control = 4;
   }
   oneof payload {
     Metadata metadata = 1;
