@@ -578,10 +578,15 @@ func (*DeleteObjectResponse) Descriptor() ([]byte, []int) {
 }
 
 type UploadObjectRequest_Metadata struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
-	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Bucket      string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key         string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	ContentType string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	// Optional. Stored on the object and returned by R2 on every public read,
+	// so it is what a CDN and a client actually cache on. Objects whose key
+	// already identifies their content should send a long immutable value;
+	// empty leaves the bucket default in place.
+	CacheControl  string `protobuf:"bytes,4,opt,name=cache_control,json=cacheControl,proto3" json:"cache_control,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -637,6 +642,13 @@ func (x *UploadObjectRequest_Metadata) GetContentType() string {
 	return ""
 }
 
+func (x *UploadObjectRequest_Metadata) GetCacheControl() string {
+	if x != nil {
+		return x.CacheControl
+	}
+	return ""
+}
+
 var File_rusti2_v1_object_storage_proto protoreflect.FileDescriptor
 
 const file_rusti2_v1_object_storage_proto_rawDesc = "" +
@@ -663,14 +675,15 @@ const file_rusti2_v1_object_storage_proto_rawDesc = "" +
 	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\")\n" +
 	"\x13DownloadObjectChunk\x12\x12\n" +
-	"\x04body\x18\x01 \x01(\fR\x04body\"\xd6\x01\n" +
+	"\x04body\x18\x01 \x01(\fR\x04body\"\xfb\x01\n" +
 	"\x13UploadObjectRequest\x12E\n" +
 	"\bmetadata\x18\x01 \x01(\v2'.rusti2.v1.UploadObjectRequest.MetadataH\x00R\bmetadata\x12\x14\n" +
-	"\x04body\x18\x02 \x01(\fH\x00R\x04body\x1aW\n" +
+	"\x04body\x18\x02 \x01(\fH\x00R\x04body\x1a|\n" +
 	"\bMetadata\x12\x16\n" +
 	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\x12!\n" +
-	"\fcontent_type\x18\x03 \x01(\tR\vcontentTypeB\t\n" +
+	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\x12#\n" +
+	"\rcache_control\x18\x04 \x01(\tR\fcacheControlB\t\n" +
 	"\apayload\"I\n" +
 	"\x14UploadObjectResponse\x12\x12\n" +
 	"\x04etag\x18\x01 \x01(\tR\x04etag\x12\x1d\n" +
